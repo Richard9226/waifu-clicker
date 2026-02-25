@@ -1,4 +1,6 @@
-# waifu-clicker
+# waifu-clicker 
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7998365107569115"
+     crossorigin="anonymous"></script>
 [anime waifu.html](https://github.com/user-attachments/files/25540571/anime.waifu.html)
 <!DOCTYPE html>
 <html>
