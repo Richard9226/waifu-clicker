@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Random Anime Waifu Clicker</title>
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #1a0026, #330033);
+    color: white;
+    text-align: center;
+    overflow: hidden;
+}
+
+h1 { margin-top: 15px; }
+
+#gameArea {
+    position: relative;
+    width: 95vw;
+    max-width: 700px;
+    height: 65vh;
+    margin: 15px auto;
+    background: rgba(255,255,255,0.08);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.character {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 15px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.character:active { transform: scale(0.85); }
+
+.trap { filter: grayscale(1) brightness(0.5); }
+
+.comboText {
+    position: absolute;
+    color: #ff4da6;
+    font-weight: bold;
+    animation: floatUp 1s forwards;
+    pointer-events: none;
+}
+
+@keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-40px); }
+}
+
+#info { margin-top: 10px; }
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    background: #ff4da6;
+    color: white;
+}
+</style>
+</head>
+<body>
+
+<h1>💖 Random Anime Waifu Clicker 💖</h1>
+
+<div id="gameArea"></div>
+
+<div id="info">
+Score: <span id="score">0</span> |
+Combo: <span id="combo">0</span> |
+Time: <span id="time">30</span> |
+Best: <span id="best">0</span>
+</div>
+
+<button onclick="startGame()">Start Game</button>
+
+<script>
+let score=0, combo=0, timeLeft=30, spawnSpeed=900;
+let gameInterval, timerInterval;
+let best = localStorage.getItem("animeBest") || 0;
+document.getElementById("best").textContent = best;
+
+function startGame(){
+score=0; combo=0; timeLeft=30; spawnSpeed=900;
+updateUI();
+document.getElementById("gameArea").innerHTML="";
+gameInterval=setInterval(spawnCharacter,spawnSpeed);
+timerInterval=setInterval(updateTimer,1000);
+}
+
+async function getRandomAnimeGirl(){
+try{
+let res = await fetch("https://api.waifu.pics/sfw/waifu");
+let data = await res.json();
+return data.url;
+}catch{
+return "https://i.imgur.com/2RMzGJY.png";
+}
+}
+
+async function spawnCharacter(){
+const area=document.getElementById("gameArea");
+const char=document.createElement("img");
+char.classList.add("character");
+
+let isTrap=Math.random()<0.2;
+
+if(isTrap){
+char.src="https://i.imgur.com/3ZQ3Z4X.png";
+char.classList.add("trap");
+}else{
+char.src=await getRandomAnimeGirl();
+}
+
+const x=Math.random()*(area.clientWidth-100);
+const y=Math.random()*(area.clientHeight-100);
+char.style.left=x+"px";
+char.style.top=y+"px";
+
+char.onclick=function(){
+if(isTrap){
+combo=0;
+score=Math.max(0,score-5);
+}else{
+combo++;
+score+=1+Math.floor(combo/4);
+showCombo(x,y);
+}
+updateUI();
+char.remove();
+}
+
+area.appendChild(char);
+setTimeout(()=>{if(char.parentNode)char.remove();},1500);
+}
+
+function showCombo(x,y){
+const txt=document.createElement("div");
+txt.classList.add("comboText");
+txt.innerHTML="+"+(1+Math.floor(combo/4))+" 🔥";
+txt.style.left=x+"px";
+txt.style.top=y+"px";
+document.getElementById("gameArea").appendChild(txt);
+setTimeout(()=>txt.remove(),1000);
+}
+
+function updateTimer(){
+timeLeft--;
+updateUI();
+if(timeLeft<=0){
+clearInterval(gameInterval);
+clearInterval(timerInterval);
+if(score>best){
+best=score;
+localStorage.setItem("animeBest",best);
+}
+alert("Game Over! Final Score: "+score);
+}
+if(timeLeft%5===0 && spawnSpeed>350){
+spawnSpeed-=100;
+clearInterval(gameInterval);
+gameInterval=setInterval(spawnCharacter,spawnSpeed);
+}
+}
+
+function updateUI(){
+document.getElementById("score").textContent=score;
+document.getElementById("combo").textContent=combo;
+document.getElementById("time").textContent=timeLeft;
+document.getElementById("best").textContent=best;
+}
+</script>
+
+</body>
+</html>
